@@ -1,0 +1,904 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#12151b;
+    --panel:#181c24;
+    --panel-alt:#1f2530;
+    --border:#2b3240;
+    --text:#d9dde5;
+    --text-dim:#8a93a6;
+    --accent-red:#c1443c;
+    --accent-blue:#4f7fbf;
+    --accent-amber:#d9a441;
+    --paper:#ffffff;
+    --paper-text:#201d17;
+    --font-ui:'Segoe UI',system-ui,-apple-system,sans-serif;
+    --font-mono:ui-monospace,'Cascadia Code',Consolas,'Liberation Mono',monospace;
+    --font-paper:'Noto Sans','Liberation Sans',-apple-system,'Helvetica Neue',Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    background:var(--bg);
+    margin:0;
+    padding:0;
+    min-height:100%;
+  }
+  .fpe-root{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--font-ui);
+    border-radius:10px;
+    overflow:hidden;
+    border:1px solid var(--border);
+    max-width:1500px;
+    margin:0 auto;
+  }
+  .fpe-topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 18px;border-bottom:1px solid var(--border);
+    background:linear-gradient(180deg,#1c212b,#161a22);
+  }
+  .fpe-brand h1{
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    font-weight:700;margin:0;color:var(--accent-amber);
+  }
+  .fpe-topbar-actions{display:flex;gap:8px;align-items:center;}
+  .fpe-count{font-size:11px;color:var(--text-dim);font-family:var(--font-mono);}
+
+  .fpe-layout{
+    display:grid;
+    grid-template-columns:340px minmax(0,1fr) auto;
+    min-height:640px;
+  }
+  @media (max-width:1250px){
+    .fpe-layout{grid-template-columns:1fr;}
+    .fpe-toolbar{border-right:none;border-bottom:1px solid var(--border);}
+    .fpe-editorcol{border-right:none;border-bottom:1px solid var(--border);}
+  }
+
+  .fpe-toolbar{
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    padding:14px;
+    overflow-y:auto;
+    max-height:80vh;
+  }
+  .fpe-group{margin-bottom:16px;}
+  .fpe-group-label{
+    font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--text-dim);font-weight:700;margin-bottom:7px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .fpe-btnrow{display:flex;flex-wrap:wrap;gap:6px;}
+  .fpe-btn{
+    background:var(--panel-alt);
+    border:1px solid var(--border);
+    color:var(--text);
+    padding:7px 10px;
+    border-radius:6px;
+    font-size:12.5px;
+    cursor:pointer;
+    transition:background .12s,border-color .12s,transform .05s;
+    flex:1 1 auto;
+    white-space:nowrap;
+  }
+  .fpe-btn:hover{background:#262d3a;border-color:#3a4356;}
+  .fpe-btn:active{transform:scale(.97);}
+  .fpe-btn:focus-visible{outline:2px solid var(--accent-blue);outline-offset:1px;}
+  .fpe-btn.wide{flex:1 1 100%;}
+  .fpe-btn.b{font-weight:700;}
+  .fpe-btn.i{font-style:italic;}
+  .fpe-btn.mono{font-family:var(--font-mono);}
+  .fpe-btn.danger:hover{background:#3a1c1c;border-color:var(--accent-red);}
+
+  .fpe-swatch-label{
+    font-size:9.5px;color:var(--text-dim);text-transform:uppercase;
+    letter-spacing:.08em;margin:0 0 4px;
+  }
+  .fpe-swatches{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+  .fpe-swatch{
+    width:24px;height:24px;border-radius:5px;cursor:pointer;
+    border:1px solid rgba(255,255,255,.15);
+    position:relative;
+  }
+  .fpe-swatch:hover{outline:2px solid #fff2;}
+  .fpe-colorrow{display:flex;gap:6px;align-items:center;}
+  .fpe-colorrow input[type=color]{
+    width:32px;height:30px;padding:0;border:1px solid var(--border);
+    border-radius:6px;background:none;cursor:pointer;
+  }
+  .fpe-colorrow input[type=text]{
+    flex:1;min-width:0;background:var(--panel-alt);border:1px solid var(--border);
+    color:var(--text);border-radius:6px;padding:6px 8px;font-family:var(--font-mono);font-size:12px;
+  }
+
+  details.fpe-ref{
+    background:var(--panel-alt);border:1px solid var(--border);
+    border-radius:6px;padding:8px 10px;font-size:11.5px;color:var(--text);
+    overflow-x:hidden;
+  }
+  details.fpe-ref summary{cursor:pointer;color:var(--text);font-weight:600;font-size:12px;}
+  .fpe-ref-list{margin:8px 0 0;}
+  .fpe-ref-row{margin-bottom:10px;}
+  .fpe-ref-row:last-child{margin-bottom:0;}
+  .fpe-ref-row dt{
+    color:var(--accent-amber);font-family:var(--font-mono);font-size:12px;
+    font-weight:600;margin:0;overflow-wrap:anywhere;
+  }
+  .fpe-ref-row dd{
+    color:var(--text);font-size:11.5px;line-height:1.4;
+    margin:3px 0 0;
+  }
+
+  .fpe-editorcol{
+    display:flex;flex-direction:column;
+    border-right:1px solid var(--border);
+    background:#0f1116;
+  }
+  .fpe-editor-toolbar{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:8px 12px;border-bottom:1px solid var(--border);
+    background:var(--panel);font-size:11px;color:var(--text-dim);
+  }
+  textarea.fpe-editor{
+    flex:1;resize:none;border:none;outline:none;
+    background:#0f1116;color:#dfe4ee;
+    font-family:var(--font-mono);font-size:13px;line-height:1.55;
+    padding:16px;min-height:420px;
+  }
+  .fpe-capacity{
+    padding:10px 14px;border-top:1px solid var(--border);background:var(--panel);
+  }
+  .fpe-lint{
+    display:none;background:#2e2410;border-bottom:1px solid #4a3d1a;
+    color:#e0c069;font-size:11.5px;padding:8px 14px;line-height:1.5;
+  }
+  .fpe-lint.show{display:block;}
+  .fpe-lint ul{margin:0;padding-left:18px;}
+  .fpe-lint li{margin:2px 0;}
+  .fpe-capacity-count{
+    font-size:11.5px;color:var(--text);font-family:var(--font-mono);
+    margin-top:6px;
+  }
+  .fpe-bar{height:6px;border-radius:4px;background:#232838;overflow:hidden;}
+  .fpe-bar-fill{height:100%;background:#4caf6a;transition:width .15s,background .15s;}
+  .fpe-capacity-note{font-size:10px;color:var(--text-dim);margin-top:4px;}
+
+  .fpe-previewcol{
+    background:
+      repeating-linear-gradient(0deg, #262c36 0 2px, #21262f 2px 46px),
+      repeating-linear-gradient(90deg, #262c36 0 2px, transparent 2px 46px);
+    background-color:#21262f;
+    padding:26px 20px;
+    display:flex;flex-direction:column;align-items:center;
+    overflow-y:auto;
+    width:max-content;
+    min-width:calc(53ch + 80px);
+  }
+  @media (max-width:1250px){
+    .fpe-previewcol{width:auto;min-width:0;}
+  }
+  .fpe-preview-label{
+    align-self:flex-start;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    color:#aab2c4;font-weight:700;margin-bottom:10px;
+  }
+  #fpePaperTitle{
+    align-self:flex-start;color:#c7cedb;font-size:12px;font-family:var(--font-mono);
+    margin-bottom:8px;min-height:14px;
+  }
+  .fpe-paper{
+    background:var(--paper);
+    color:var(--paper-text);
+    width:calc(53ch + 40px);
+    max-width:100%;
+    aspect-ratio:509/613;
+    overflow-y:auto;
+    border-radius:10px;
+    padding:22px 20px;
+    box-shadow:0 12px 30px rgba(0,0,0,.45);
+    font-family:var(--font-paper);
+    font-size:13.5px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    overflow-wrap:break-word;
+  }
+  .fpe-paper .tag-bold{font-weight:700;}
+  .fpe-paper .tag-italic{font-style:italic;}
+  .fpe-paper .tag-bolditalic{font-weight:700;font-style:italic;}
+  .fpe-paper .tag-mono{font-family:var(--font-mono);background:rgba(0,0,0,.06);padding:0 3px;border-radius:2px;}
+  .fpe-paper .paper-head{display:block;font-weight:700;margin:6px 0;}
+  .fpe-paper .head-1{font-size:19px;}
+  .fpe-paper .head-2{font-size:16.5px;}
+  .fpe-paper .head-3{font-size:14.5px;}
+  .fpe-paper .tag-bullet{font-weight:700;}
+  .fpe-paper .field{
+    display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--font-ui);font-size:11px;font-weight:600;
+    border-radius:4px;vertical-align:middle;margin:0 2px;
+    user-select:none;
+  }
+  .fpe-paper .field-form,.fpe-paper .field-signature{
+    background:#2e3648;color:#eef1f7;padding:2px 12px;min-width:52px;
+  }
+  .fpe-paper .field-check{
+    width:14px;height:14px;border:2px solid #2e3648;border-radius:2px;background:transparent;
+  }
+  .fpe-paper-wrap{position:relative;width:100%;display:flex;justify-content:center;}
+  .fpe-guide{
+    position:absolute;top:0;bottom:0;left:50%;width:1px;
+    background:repeating-linear-gradient(180deg,#c1443c 0 5px,transparent 5px 10px);
+    display:none;pointer-events:none;z-index:2;
+  }
+  .fpe-paper-wrap.guide-on .fpe-guide{display:block;}
+  .fpe-paper-wrap.guide-on .fpe-paper{outline:1px dashed rgba(193,68,60,.45);outline-offset:-20px;}
+  .fpe-paper .ascii-art{
+    font-family:var(--font-mono);
+    letter-spacing:0;
+  }
+  .fpe-paper a{color:#1b67a5;}
+
+  .fpe-toast-wrap{position:fixed;bottom:16px;right:16px;z-index:9999;display:flex;flex-direction:column;gap:8px;}
+  .fpe-toast{
+    background:#1f2530;border:1px solid var(--border);color:var(--text);
+    padding:9px 14px;border-radius:7px;font-size:12.5px;box-shadow:0 6px 18px rgba(0,0,0,.4);
+    opacity:0;transform:translateY(6px);transition:opacity .18s,transform .18s;
+  }
+  .fpe-toast.show{opacity:1;transform:translateY(0);}
+  @media (prefers-reduced-motion:reduce){
+    .fpe-toast{transition:none;}
+    .fpe-bar-fill{transition:none;}
+  }
+
+</style>
+
+<div class="fpe-root">
+  <div class="fpe-topbar">
+    <div class="fpe-brand">
+      <h1>North's Paperwork Console</h1>
+    </div>
+    <div class="fpe-topbar-actions">
+      <span class="fpe-count" id="fpeWordCount">0 words &middot; 0 chars</span>
+      <button class="fpe-btn" id="fpeNewDoc">Clear document</button>
+      <button class="fpe-btn" id="fpeSaveImage">Save as PNG</button>
+    </div>
+  </div>
+
+  <div class="fpe-layout">
+    <!-- TOOLBAR -->
+    <div class="fpe-toolbar">
+
+      <div class="fpe-group">
+        <div class="fpe-group-label">Text</div>
+        <div class="fpe-btnrow">
+          <button class="fpe-btn b" data-tag="bold">Bold</button>
+          <button class="fpe-btn i" data-tag="italic">Italic</button>
+          <button class="fpe-btn b i" data-tag="bolditalic">Bold Italic</button>
+          <button class="fpe-btn mono" data-tag="mono">Monospace</button>
+        </div>
+      </div>
+
+      <div class="fpe-group">
+        <div class="fpe-group-label">Headers</div>
+        <div class="fpe-btnrow">
+          <button class="fpe-btn" data-tag="head1">Header 1</button>
+          <button class="fpe-btn" data-tag="head2">Header 2</button>
+          <button class="fpe-btn" data-tag="head3">Header 3</button>
+        </div>
+      </div>
+
+      <div class="fpe-group">
+        <div class="fpe-group-label">Color</div>
+        <div class="fpe-swatch-label">Department letterheads</div>
+        <div class="fpe-swatches" id="fpeSwatchesDept"></div>
+        <div class="fpe-swatch-label">Body &amp; accents</div>
+        <div class="fpe-swatches" id="fpeSwatchesText"></div>
+        <div class="fpe-colorrow">
+          <input type="color" id="fpeColorPicker" value="#1b67a5">
+          <input type="text" id="fpeColorHex" value="#1b67a5" spellcheck="false">
+          <button class="fpe-btn" id="fpeApplyColor" style="flex:0 0 auto;">Apply</button>
+        </div>
+      </div>
+
+      <div class="fpe-group">
+        <div class="fpe-group-label">Layout</div>
+        <div class="fpe-btnrow">
+          <button class="fpe-btn wide" data-selfclose="bullet">Bullet Point</button>
+          <button class="fpe-btn wide" id="fpeDivider">Divider Rule</button>
+          <button class="fpe-btn wide" id="fpeCenterText">Center Text</button>
+          <button class="fpe-btn wide" id="fpeToggleGuide">Show center guide</button>
+        </div>
+        <div class="fpe-capacity-note" style="padding:0;margin-top:6px;">
+          Centers the cursor's line, or every line in a selection, by
+          measuring rendered width, not character count.
+        </div>
+      </div>
+
+      <div class="fpe-group">
+        <div class="fpe-group-label">Fillable Fields</div>
+        <div class="fpe-btnrow">
+          <button class="fpe-btn wide" data-selfclose="form">Insert Form Field</button>
+          <button class="fpe-btn wide" data-selfclose="check">Insert Checkbox</button>
+          <button class="fpe-btn wide" data-selfclose="signature">Insert Signature</button>
+        </div>
+      </div>
+
+      <div class="fpe-group">
+        <div class="fpe-group-label">Document</div>
+        <div class="fpe-btnrow">
+          <button class="fpe-btn wide" id="fpeImportBtn">Import .txt</button>
+          <button class="fpe-btn wide" id="fpeExportBtn">Save as .txt</button>
+          <button class="fpe-btn wide" id="fpeCopyMarkup">Copy Raw Markup</button>
+        </div>
+        <input type="file" id="fpeFileInput" accept=".txt" hidden>
+      </div>
+
+      <details class="fpe-ref">
+        <summary>Tag reference</summary>
+        <dl class="fpe-ref-list">
+          <div class="fpe-ref-row"><dt>[bold]..[/bold]</dt><dd>Bold text</dd></div>
+          <div class="fpe-ref-row"><dt>[italic]..[/italic]</dt><dd>Italic text</dd></div>
+          <div class="fpe-ref-row"><dt>[bolditalic]..[/bolditalic]</dt><dd>Bold + italic</dd></div>
+          <div class="fpe-ref-row"><dt>[mono]..[/mono]</dt><dd>Monospace text</dd></div>
+          <div class="fpe-ref-row"><dt>[head=1..3]..[/head]</dt><dd>Header, level 1&ndash;3</dd></div>
+          <div class="fpe-ref-row"><dt>[color=#hex]..[/color]</dt><dd>Colored text</dd></div>
+          <div class="fpe-ref-row"><dt>[bullet/]</dt><dd>Bullet point marker</dd></div>
+          <div class="fpe-ref-row"><dt>[form]</dt><dd>Fillable short-answer field</dd></div>
+          <div class="fpe-ref-row"><dt>[check]</dt><dd>Fillable checkbox</dd></div>
+          <div class="fpe-ref-row"><dt>[signature]</dt><dd>Fillable signature field</dd></div>
+        </dl>
+      </details>
+    </div>
+
+    <!-- EDITOR -->
+    <div class="fpe-editorcol">
+      <div class="fpe-editor-toolbar">
+        <span>Raw markup &mdash; select text, then click a tag to wrap it</span>
+      </div>
+      <div class="fpe-lint" id="fpeLint"></div>
+      <textarea class="fpe-editor" id="fpeEditor" spellcheck="false" placeholder="# Document Title (this line names the paper in game - it won't print on the paper)
+
+Your text here &mdash; plain text in, official-looking bureaucracy out."></textarea>
+      <div class="fpe-capacity">
+        <div class="fpe-bar"><div class="fpe-bar-fill" id="fpeCapBar" style="width:0%"></div></div>
+        <div class="fpe-capacity-count"><span id="fpeCapCurrent">0</span> / 6000</div>
+        <div class="fpe-capacity-note" id="fpeCapNote">Counts every character including spaces, line breaks, and markup tags.</div>
+      </div>
+    </div>
+
+    <!-- PREVIEW -->
+    <div class="fpe-previewcol">
+      <div class="fpe-preview-label">In-game preview</div>
+      <div id="fpePaperTitle"></div>
+      <div class="fpe-paper-wrap" id="fpePaperWrap">
+        <div class="fpe-guide"></div>
+        <div class="fpe-paper" id="fpePaper"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="fpe-toast-wrap" id="fpeToastWrap"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var PAIR_TAGS = ['bold','italic','bolditalic','mono','head','color'];
+  var SELF_CLOSE_TAGS = ['bullet','form','check','signature'];
+
+  var DEPT_SWATCHES = [
+    {hex:'#147e10', label:'Central Command Liaison Network'},
+    {hex:'#0850a6', label:'Station Command Authority'},
+    {hex:'#9e1c1c', label:'Legal Affairs Office'},
+    {hex:'#00a3d1', label:'Medical Department'},
+    {hex:'#5608a8', label:'Research Division'},
+    {hex:'#a8592e', label:'Supply Department'},
+    {hex:'#f0ad4e', label:'Engineering Department'},
+    {hex:'#3e5fb0', label:'Personnel Services'}
+  ];
+
+  var TEXT_SWATCHES = [
+    {hex:'#cb0000', label:'Alert red (emphasis within body text)'},
+    {hex:'#1b67a5', label:'Field blue (fill-in values)'},
+    {hex:'#aaaaaa', label:'Muted grey (fine print / footers)'},
+    {hex:'#000000', label:'Black'}
+  ];
+
+  var editor = document.getElementById('fpeEditor');
+  var paperEl = document.getElementById('fpePaper');
+  var paperTitleEl = document.getElementById('fpePaperTitle');
+  var wordCountEl = document.getElementById('fpeWordCount');
+  var capCurrentEl = document.getElementById('fpeCapCurrent');
+  var capNoteEl = document.getElementById('fpeCapNote');
+  var lintEl = document.getElementById('fpeLint');
+  var capBarEl = document.getElementById('fpeCapBar');
+
+  function escapeHtml(str){
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function tokenize(src){
+    var tokens = [];
+    var re = /\[(\/?)([a-zA-Z]+)(?:=([^\]\/]*))?\/?\]/g;
+    var last = 0, m;
+    while ((m = re.exec(src))) {
+      if (m.index > last) tokens.push({type:'text', value: src.slice(last, m.index)});
+      tokens.push({
+        type: m[1] === '/' ? 'close' : 'open',
+        name: m[2].toLowerCase(),
+        value: m[3]
+      });
+      last = re.lastIndex;
+    }
+    if (last < src.length) tokens.push({type:'text', value: src.slice(last)});
+    return tokens;
+  }
+
+  function sanitizeColor(value){
+    if (!value) return 'inherit';
+    var v = value.trim();
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(v)) return v;
+    if (/^[a-zA-Z]{3,20}$/.test(v)) return v;
+    return 'inherit';
+  }
+
+  function clampHead(value){
+    var n = parseInt(value, 10);
+    if (isNaN(n)) n = 1;
+    if (n < 1) n = 1;
+    if (n > 3) n = 3;
+    return n;
+  }
+
+  function pairOpenHtml(name, value){
+    switch(name){
+      case 'bold': return '<span class="tag-bold">';
+      case 'italic': return '<span class="tag-italic">';
+      case 'bolditalic': return '<span class="tag-bolditalic">';
+      case 'mono': return '<span class="tag-mono">';
+      case 'color': return '<span style="color:' + sanitizeColor(value) + '">';
+      case 'head': return '<span class="paper-head head-' + clampHead(value) + '">';
+      default: return '<span>';
+    }
+  }
+
+  function selfCloseHtml(name){
+    switch(name){
+      case 'bullet': return '<span class="tag-bullet">&bull;</span> ';
+      case 'form': return '<span class="field field-form" title="[form]">Fill</span>';
+      case 'check': return '<span class="field field-check" title="[check]"></span>';
+      case 'signature': return '<span class="field field-signature" title="[signature]">Sign</span>';
+      default: return '';
+    }
+  }
+
+  var ASCII_LINE = /^[\s\u2500-\u257F\u2580-\u259F_=-]+$/;
+  function isAsciiArtLine(segment){
+    if (!ASCII_LINE.test(segment)) return false;
+    var glyphs = segment.replace(/\s/g, '');
+    if (glyphs.length < 3) return false;
+    return /[\u2500-\u259F_=-]/.test(glyphs);
+  }
+
+  function renderTextSegment(txt){
+    var parts = txt.split('\n');
+    var out = '';
+    for (var i = 0; i < parts.length; i++){
+      if (i > 0) out += '\n';
+      var seg = parts[i];
+      if (isAsciiArtLine(seg)){
+        out += '<span class="ascii-art">' + escapeHtml(seg) + '</span>';
+      } else {
+        out += escapeHtml(seg);
+      }
+    }
+    return out;
+  }
+
+  function renderTokens(tokens){
+    var html = '';
+    var openSpans = 0;
+    var stack = [];
+    var eatNewline = false;
+    for (var idx = 0; idx < tokens.length; idx++){
+      var t = tokens[idx];
+      if (t.type === 'text'){
+        var txt = t.value;
+        if (eatNewline && txt.charAt(0) === '\n') txt = txt.slice(1);
+        eatNewline = false;
+        html += renderTextSegment(txt);
+        continue;
+      }
+      eatNewline = false;
+      var name = t.name;
+      if (t.type === 'open'){
+        if (SELF_CLOSE_TAGS.indexOf(name) !== -1){
+          html += selfCloseHtml(name);
+        } else if (PAIR_TAGS.indexOf(name) !== -1){
+          html += pairOpenHtml(name, t.value);
+          openSpans++;
+          stack.push(name);
+        } else {
+          html += escapeHtml('[' + name + (t.value ? '=' + t.value : '') + ']');
+        }
+      } else if (t.type === 'close'){
+        if (SELF_CLOSE_TAGS.indexOf(name) !== -1){
+
+        } else if (PAIR_TAGS.indexOf(name) !== -1 && openSpans > 0){
+          html += '</span>';
+          openSpans--;
+          var closed = stack.pop();
+          if (closed === 'head') eatNewline = true;
+        }
+      }
+    }
+    while (openSpans > 0){ html += '</span>'; openSpans--; }
+    return html;
+  }
+
+  function splitTitle(raw){
+    var lines = raw.split('\n');
+    if (lines.length && /^#\s?/.test(lines[0])){
+      var title = lines[0].replace(/^#\s?/, '');
+      var body = lines.slice(1).join('\n');
+      if (body.charAt(0) === '\n') body = body.slice(1);
+      return {title: title, body: body};
+    }
+    return {title: null, body: raw};
+  }
+
+  function plainTextOf(body){
+    return body.replace(/\[(\/?)([a-zA-Z]+)(?:=([^\]\/]*))?\/?\]/g, '').trim();
+  }
+
+  function lintTokens(tokens){
+    var issues = [];
+    var stack = [];
+    for (var i = 0; i < tokens.length; i++){
+      var t = tokens[i];
+      if (t.type === 'text') continue;
+      var name = t.name;
+      if (t.type === 'open'){
+        if (SELF_CLOSE_TAGS.indexOf(name) !== -1) continue;
+        if (PAIR_TAGS.indexOf(name) === -1){
+          issues.push('Unknown tag [' + escapeHtml(name) + (t.value ? '=' + escapeHtml(t.value) : '') + '] will print as plain text, not formatting.');
+          continue;
+        }
+        stack.push(name);
+      } else {
+        if (SELF_CLOSE_TAGS.indexOf(name) !== -1 || PAIR_TAGS.indexOf(name) === -1) continue;
+        if (!stack.length){
+          issues.push('Stray [/' + name + '] with nothing open to close.');
+        } else if (stack[stack.length - 1] === name){
+          stack.pop();
+        } else if (stack.indexOf(name) !== -1){
+          issues.push('[/' + name + '] closes out of order (expected [/' + stack[stack.length - 1] + '] first) &mdash; tags are crossed, not nested.');
+          while (stack.length && stack[stack.length - 1] !== name) stack.pop();
+          stack.pop();
+        } else {
+          issues.push('Stray [/' + name + '] with nothing open to close.');
+        }
+      }
+    }
+    if (stack.length){
+      issues.push('Never closed: ' + stack.map(function(n){ return '[' + n + ']'; }).join(', ') + '.');
+    }
+    return issues;
+  }
+
+  function updatePreview(){
+    var raw = editor.value;
+    var split = splitTitle(raw);
+    paperTitleEl.textContent = split.title || '';
+    var tokens = tokenize(split.body);
+    paperEl.innerHTML = renderTokens(tokens);
+
+    var lintIssues = lintTokens(tokens);
+    if (lintIssues.length){
+      lintEl.innerHTML = '<ul>' + lintIssues.map(function(msg){ return '<li>' + msg + '</li>'; }).join('') + '</ul>';
+      lintEl.classList.add('show');
+    } else {
+      lintEl.classList.remove('show');
+      lintEl.innerHTML = '';
+    }
+
+    var plain = plainTextOf(split.body);
+    var words = plain.length ? plain.split(/\s+/).filter(Boolean).length : 0;
+    wordCountEl.textContent = words + ' words \u00b7 ' + raw.length + ' chars';
+
+    var PAPER_LIMIT = 6000;
+    var cur = split.body.length;
+    capCurrentEl.textContent = cur;
+    var pct = Math.min(100, (cur / PAPER_LIMIT) * 100);
+    capBarEl.style.width = pct + '%';
+    var over = cur - PAPER_LIMIT;
+    if (over > 0){
+      capBarEl.style.background = '#c1443c';
+      capNoteEl.textContent = 'Over the limit by ' + over + ' characters. This will not fit on one paper.';
+      capNoteEl.style.color = '#e0736a';
+    } else {
+      capBarEl.style.background = pct > 90 ? '#c1443c' : pct > 70 ? '#d9a441' : '#4caf6a';
+      capNoteEl.textContent = 'Counts every character including spaces, line breaks, and markup tags.';
+      capNoteEl.style.color = '';
+    }
+  }
+
+  function replaceRange(start, end, text){
+    editor.focus();
+    editor.setSelectionRange(start, end);
+    var ok = false;
+    try { ok = document.execCommand('insertText', false, text); } catch(e){ ok = false; }
+    if (!ok){
+      var val = editor.value;
+      editor.value = val.slice(0, start) + text + val.slice(end);
+      var pos = start + text.length;
+      editor.setSelectionRange(pos, pos);
+    }
+  }
+
+  function wrapSelection(open, close){
+    var start = editor.selectionStart, end = editor.selectionEnd;
+    var selected = editor.value.slice(start, end);
+    var insert = open + selected + close;
+    replaceRange(start, end, insert);
+    if (!selected.length){
+      var pos = start + open.length;
+      editor.setSelectionRange(pos, pos);
+    }
+    updatePreview();
+  }
+
+  function insertAtCursor(text){
+    var start = editor.selectionStart, end = editor.selectionEnd;
+    replaceRange(start, end, text);
+    updatePreview();
+  }
+
+  var TAG_PAIRS = {
+    bold: ['[bold]','[/bold]'],
+    italic: ['[italic]','[/italic]'],
+    bolditalic: ['[bolditalic]','[/bolditalic]'],
+    mono: ['[mono]','[/mono]'],
+    head1: ['[head=1]','[/head]'],
+    head2: ['[head=2]','[/head]'],
+    head3: ['[head=3]','[/head]']
+  };
+  var SELF_CLOSE_INSERT = {
+    bullet: '[bullet/]',
+    form: '[form]',
+    check: '[check]',
+    signature: '[signature]'
+  };
+
+  var PAGE_CHARS = 53;
+  var measureCtx = (function(){
+    try { return document.createElement('canvas').getContext('2d'); }
+    catch(e){ return null; }
+  })();
+
+  function measureText(str, bold){
+    if (!measureCtx) return null;
+    var cs = window.getComputedStyle(paperEl);
+    measureCtx.font = (bold ? '700 ' : '400 ') + cs.fontSize + ' ' + cs.fontFamily;
+    return measureCtx.measureText(str).width;
+  }
+
+  function leadingSpacesToCenter(visible, bold){
+    var pageWidth = measureText(new Array(PAGE_CHARS + 1).join('0'), false);
+    var textWidth = measureText(visible, bold);
+    var spaceWidth = measureText(' ', false);
+    if (!pageWidth || !spaceWidth) return null;
+    if (textWidth >= pageWidth) return 0;
+    return Math.max(0, Math.round((pageWidth - textWidth) / (2 * spaceWidth)));
+  }
+
+  function centerOneLine(line){
+    var trimmed = line.replace(/^[ \t]+/, '').replace(/[ \t]+$/, '');
+    if (!trimmed.length) return line;
+
+    var visible = trimmed.replace(/\[(\/?)([a-zA-Z]+)(?:=([^\]\/]*))?\/?\]/g, '');
+    var bold = /\[(bold|bolditalic|head)/.test(trimmed);
+
+    var pad = leadingSpacesToCenter(visible, bold);
+    if (pad === null){
+      pad = Math.max(0, Math.floor((PAGE_CHARS - visible.length) / 2));
+    }
+    return new Array(pad + 1).join(' ') + trimmed;
+  }
+
+  function centerSelection(){
+    var val = editor.value;
+    var selStart = editor.selectionStart, selEnd = editor.selectionEnd;
+
+    var blockStart = val.lastIndexOf('\n', selStart - 1) + 1;
+    var endAnchor = selEnd > selStart ? selEnd - 1 : selEnd;
+    var blockEndIdx = val.indexOf('\n', endAnchor);
+    var blockEnd = blockEndIdx === -1 ? val.length : blockEndIdx;
+
+    var block = val.slice(blockStart, blockEnd);
+    if (!block.trim().length){
+      showToast('Nothing on this line to center');
+      return;
+    }
+
+    var lines = block.split('\n');
+    var wasAlreadyCentered = lines.every(function(l){
+      if (!l.trim().length) return true;
+      return l === centerOneLine(l);
+    });
+    if (wasAlreadyCentered){
+      showToast(lines.length > 1 ? 'Lines already centered' : 'Line already fills the row');
+    }
+
+    var centered = lines.map(centerOneLine).join('\n');
+    replaceRange(blockStart, blockEnd, centered);
+    var newPos = blockStart + centered.length;
+    editor.setSelectionRange(newPos, newPos);
+    updatePreview();
+  }
+
+  var DIVIDER_RULE = '\u2500'.repeat(41);
+  document.getElementById('fpeDivider').addEventListener('click', function(){
+    insertAtCursor(DIVIDER_RULE);
+  });
+
+  document.getElementById('fpeCenterText').addEventListener('click', centerSelection);
+
+  var paperWrap = document.getElementById('fpePaperWrap');
+  var guideBtn = document.getElementById('fpeToggleGuide');
+  guideBtn.addEventListener('click', function(){
+    var on = paperWrap.classList.toggle('guide-on');
+    guideBtn.textContent = on ? 'Hide center guide' : 'Show center guide';
+  });
+
+  Array.prototype.forEach.call(document.querySelectorAll('[data-tag]'), function(btn){
+    btn.addEventListener('click', function(){
+      var pair = TAG_PAIRS[btn.getAttribute('data-tag')];
+      wrapSelection(pair[0], pair[1]);
+    });
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-selfclose]'), function(btn){
+    btn.addEventListener('click', function(){
+      insertAtCursor(SELF_CLOSE_INSERT[btn.getAttribute('data-selfclose')]);
+    });
+  });
+
+  function buildSwatches(containerId, list){
+    var wrap = document.getElementById(containerId);
+    list.forEach(function(sw){
+      var el = document.createElement('div');
+      el.className = 'fpe-swatch';
+      el.style.background = sw.hex;
+      el.title = sw.label + ' (' + sw.hex + ')';
+      el.setAttribute('role','button');
+      el.setAttribute('tabindex','0');
+      el.setAttribute('aria-label', sw.label);
+      function apply(){ wrapSelection('[color=' + sw.hex + ']', '[/color]'); }
+      el.addEventListener('click', apply);
+      el.addEventListener('keydown', function(e){
+        if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); apply(); }
+      });
+      wrap.appendChild(el);
+    });
+  }
+  buildSwatches('fpeSwatchesDept', DEPT_SWATCHES);
+  buildSwatches('fpeSwatchesText', TEXT_SWATCHES);
+
+  var colorPicker = document.getElementById('fpeColorPicker');
+  var colorHex = document.getElementById('fpeColorHex');
+  colorPicker.addEventListener('input', function(){ colorHex.value = colorPicker.value; });
+  colorHex.addEventListener('input', function(){
+    if (/^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(colorHex.value)) colorPicker.value = colorHex.value;
+  });
+  document.getElementById('fpeApplyColor').addEventListener('click', function(){
+    var v = colorHex.value.trim() || colorPicker.value;
+    wrapSelection('[color=' + v + ']', '[/color]');
+  });
+
+  var AUTOSAVE_KEY = 'auto_draft';
+  var autosaveTimer = null;
+  function scheduleAutosave(){
+    clearTimeout(autosaveTimer);
+    autosaveTimer = setTimeout(function(){
+      try { window.storage.set(AUTOSAVE_KEY, editor.value, false); }
+      catch(e){}
+    }, 800);
+  }
+
+  editor.addEventListener('input', updatePreview);
+  editor.addEventListener('input', scheduleAutosave);
+  editor.addEventListener('keydown', function(e){
+    var mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === 'b'){ e.preventDefault(); wrapSelection('[bold]','[/bold]'); }
+    else if (mod && e.key.toLowerCase() === 'i'){ e.preventDefault(); wrapSelection('[italic]','[/italic]'); }
+  });
+
+  function showToast(msg){
+    var wrap = document.getElementById('fpeToastWrap');
+    var t = document.createElement('div');
+    t.className = 'fpe-toast';
+    t.textContent = msg;
+    wrap.appendChild(t);
+    requestAnimationFrame(function(){ t.classList.add('show'); });
+    setTimeout(function(){
+      t.classList.remove('show');
+      setTimeout(function(){ wrap.removeChild(t); }, 250);
+    }, 2200);
+  }
+
+  document.getElementById('fpeNewDoc').addEventListener('click', function(){
+    if (editor.value.trim() && !confirm('Clear the current document? Unsaved changes will be lost.')) return;
+    editor.value = '';
+    updatePreview();
+    clearTimeout(autosaveTimer);
+    try { window.storage.set(AUTOSAVE_KEY, '', false); } catch(e){}
+  });
+
+  var fileInput = document.getElementById('fpeFileInput');
+  document.getElementById('fpeImportBtn').addEventListener('click', function(){ fileInput.click(); });
+  fileInput.addEventListener('change', function(){
+    var file = fileInput.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      editor.value = reader.result;
+      updatePreview();
+      showToast('Imported ' + file.name);
+    };
+    reader.readAsText(file);
+    fileInput.value = '';
+  });
+
+  document.getElementById('fpeExportBtn').addEventListener('click', function(){
+    var split = splitTitle(editor.value);
+    var filename = (split.title || 'document').replace(/[^a-z0-9\-_ ]/gi,'').trim().replace(/\s+/g,'_') || 'document';
+    var blob = new Blob([editor.value], {type:'text/plain'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url; a.download = filename + '.txt';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  document.getElementById('fpeCopyMarkup').addEventListener('click', function(){
+    navigator.clipboard.writeText(editor.value).then(function(){
+      showToast('Raw markup copied');
+    }).catch(function(){
+      showToast('Copy failed \u2014 select and copy manually');
+    });
+  });
+
+  document.getElementById('fpeSaveImage').addEventListener('click', function(){
+    if (typeof html2canvas === 'undefined'){
+      showToast('Image export unavailable right now');
+      return;
+    }
+    html2canvas(paperEl, {backgroundColor:'#ffffff', scale:2}).then(function(canvas){
+      canvas.toBlob(function(blob){
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        var split = splitTitle(editor.value);
+        var filename = (split.title || 'document').replace(/[^a-z0-9\-_ ]/gi,'').trim().replace(/\s+/g,'_') || 'document';
+        a.href = url; a.download = filename + '.png';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('Exported ' + filename + '.png');
+      }, 'image/png');
+    }).catch(function(){ showToast('Image export failed'); });
+  });
+
+  (async function restoreAutosave(){
+    try {
+      var res = await window.storage.get(AUTOSAVE_KEY, false);
+      if (res && res.value && res.value.trim()){
+        editor.value = res.value;
+        showToast('Restored your last session');
+      }
+    } catch(e){}
+    updatePreview();
+  })();
+})();
+</script>
