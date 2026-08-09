@@ -225,7 +225,7 @@
   .fpe-paper .field-check{
     width:14px;height:14px;border:2px solid #2e3648;border-radius:2px;background:transparent;
   }
-  .fpe-paper-wrap{position:relative;width:100%;display:flex;justify-content:center;}
+  .fpe-paper-wrap{position:relative;width:100%;display:flex;flex-direction:column;align-items:center;}
   .fpe-guide{
     position:absolute;top:0;bottom:0;left:50%;width:1px;
     background:repeating-linear-gradient(180deg,#c1443c 0 5px,transparent 5px 10px);
@@ -233,6 +233,16 @@
   }
   .fpe-paper-wrap.guide-on .fpe-guide{display:block;}
   .fpe-paper-wrap.guide-on .fpe-paper{outline:1px dashed rgba(193,68,60,.45);outline-offset:-20px;}
+  .fpe-resize-handle{
+    width:calc(53ch + 40px);max-width:100%;height:16px;flex-shrink:0;
+    cursor:ns-resize;display:flex;align-items:center;justify-content:center;
+    touch-action:none;
+  }
+  .fpe-resize-handle::after{
+    content:'';width:36px;height:4px;border-radius:3px;
+    background:rgba(255,255,255,.22);transition:background .12s;
+  }
+  .fpe-resize-handle:hover::after,.fpe-resize-handle.active::after{background:rgba(255,255,255,.5);}
   .fpe-paper .ascii-art{
     font-family:var(--font-mono);
     letter-spacing:0;
@@ -369,11 +379,12 @@ Your text here &mdash; plain text in, official-looking bureaucracy out."></texta
 
     <!-- PREVIEW -->
     <div class="fpe-previewcol">
-      <div class="fpe-preview-label">In-game preview</div>
+      <div class="fpe-preview-label">In-game preview &middot; drag the handle below to resize</div>
       <div id="fpePaperTitle"></div>
       <div class="fpe-paper-wrap" id="fpePaperWrap">
-        <div class="fpe-guide"></div>
+        <div class="fpe-guide" id="fpeGuide"></div>
         <div class="fpe-paper" id="fpePaper"></div>
+        <div class="fpe-resize-handle" id="fpeResizeHandle" title="Drag to resize preview height &middot; double-click to reset"></div>
       </div>
     </div>
   </div>
@@ -748,11 +759,52 @@ Your text here &mdash; plain text in, official-looking bureaucracy out."></texta
   document.getElementById('fpeCenterText').addEventListener('click', centerSelection);
 
   var paperWrap = document.getElementById('fpePaperWrap');
+  var guideEl = document.getElementById('fpeGuide');
   var guideBtn = document.getElementById('fpeToggleGuide');
+
+  function syncGuideHeight(){
+    guideEl.style.height = paperEl.getBoundingClientRect().height + 'px';
+  }
+
   guideBtn.addEventListener('click', function(){
     var on = paperWrap.classList.toggle('guide-on');
     guideBtn.textContent = on ? 'Hide center guide' : 'Show center guide';
+    if (on) syncGuideHeight();
   });
+
+  var resizeHandle = document.getElementById('fpeResizeHandle');
+  var resizingPaper = false, resizeStartY = 0, resizeStartHeight = 0, resizeMinHeight = 0;
+
+  resizeHandle.addEventListener('pointerdown', function(e){
+    resizingPaper = true;
+    resizeHandle.classList.add('active');
+    resizeStartY = e.clientY;
+    resizeStartHeight = paperEl.getBoundingClientRect().height;
+    resizeMinHeight = paperEl.getBoundingClientRect().width * (613 / 509);
+    try { resizeHandle.setPointerCapture(e.pointerId); } catch(err){}
+    e.preventDefault();
+  });
+  resizeHandle.addEventListener('pointermove', function(e){
+    if (!resizingPaper) return;
+    var delta = e.clientY - resizeStartY;
+    var newHeight = Math.max(resizeMinHeight, Math.min(2400, resizeStartHeight + delta));
+    paperEl.style.height = newHeight + 'px';
+    syncGuideHeight();
+  });
+  function endResize(e){
+    if (!resizingPaper) return;
+    resizingPaper = false;
+    resizeHandle.classList.remove('active');
+    try { resizeHandle.releasePointerCapture(e.pointerId); } catch(err){}
+  }
+  resizeHandle.addEventListener('pointerup', endResize);
+  resizeHandle.addEventListener('pointercancel', endResize);
+  resizeHandle.addEventListener('dblclick', function(){
+    paperEl.style.height = '';
+    syncGuideHeight();
+    showToast('Preview height reset to default');
+  });
+  window.addEventListener('resize', syncGuideHeight);
 
   Array.prototype.forEach.call(document.querySelectorAll('[data-tag]'), function(btn){
     btn.addEventListener('click', function(){
@@ -876,6 +928,22 @@ Your text here &mdash; plain text in, official-looking bureaucracy out."></texta
       showToast('Image export unavailable right now');
       return;
     }
+    var priorHeight = paperEl.style.height;
+    var priorOverflow = paperEl.style.overflow;
+    var priorScrollTop = paperEl.scrollTop;
+    var fullHeight = paperEl.scrollHeight;
+
+    paperEl.style.overflow = 'visible';
+    paperEl.style.height = fullHeight + 'px';
+    paperEl.scrollTop = 0;
+
+    function restore(){
+      paperEl.style.height = priorHeight;
+      paperEl.style.overflow = priorOverflow;
+      paperEl.scrollTop = priorScrollTop;
+      syncGuideHeight();
+    }
+
     html2canvas(paperEl, {backgroundColor:'#ffffff', scale:2}).then(function(canvas){
       canvas.toBlob(function(blob){
         var url = URL.createObjectURL(blob);
@@ -887,7 +955,9 @@ Your text here &mdash; plain text in, official-looking bureaucracy out."></texta
         URL.revokeObjectURL(url);
         showToast('Exported ' + filename + '.png');
       }, 'image/png');
-    }).catch(function(){ showToast('Image export failed'); });
+    }).catch(function(){
+      showToast('Image export failed');
+    }).finally(restore);
   });
 
   (async function restoreAutosave(){
